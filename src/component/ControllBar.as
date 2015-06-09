@@ -21,11 +21,10 @@ package component
 	import org.flexlite.domUI.components.Rect;
 	import org.flexlite.domUI.components.UIAsset;
 	import org.flexlite.domUI.components.VSlider;
-	import org.flexlite.domUI.events.ResizeEvent;
 	
 	public class ControllBar extends Group
 	{
-		private var tvm:UIAsset;
+		private var tvmPng:UIAsset;
 		private var progressBar:HSlider;
 		private var volumeBar:VSlider;
 		//UI PlayButton
@@ -196,6 +195,7 @@ package component
 			var  scaleWidth:Number=lastWidth;
 			scale = scaleWidth/395;
 			progressBar.width = scale*145;
+			
 			if(wid < 395)
 			{
 				scaleWidth = 395;
@@ -211,12 +211,11 @@ package component
 			
 			scale = scaleWidth/395;
 			
-			tvm.left = 2*scale;
+			tvmPng.left = 2*scale;
 			playBtn.left = pauseBtn.left = 50*scale;
 			curProLabel.left = 75*scale;
 //			talProLabel.left = 290*scale;
 			progressBar.left = 133*scale;
-			trace("progressBar"+progressBar.width);
 //			progressBar.width = 145*scale;
 			talProLabel.left = Number((progressBar.width+progressBar.left).toFixed(2))+12*scale;
 			zoomInBtn.right = zoomOutBtn.right = 5*scale;
@@ -227,13 +226,13 @@ package component
 			volumeBar.height = volumeValue;
 			volumeBar.top = -volumeValue;
 			
-			var tvmScale:Number = tvm.width/tvm.height;
+			var tvmScale:Number = tvmPng.width/tvmPng.height;
 			var tvmScaleValue:Number = scale*.8;
 			if(tvmScaleValue > 1)
 				tvmScaleValue = 1;
-			tvm.scaleX = tvmScaleValue;
+			tvmPng.scaleX = tvmScaleValue;
 //			tvm.scaleY = tvmScaleValue/tvmScale;
-			tvm.scaleY = tvmScaleValue;
+			tvmPng.scaleY = tvmScaleValue;
 			
 			var ppScale:Number = playBtn.width/playBtn.height;
 			var ppScaleValue:Number = scale*.5;
@@ -277,7 +276,6 @@ package component
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
 		{
 			super.updateDisplayList(unscaledWidth, unscaledHeight);
-			trace("updateDisplayList");
 //			updatePosition(null);
 		}
 		//UI Bg
@@ -291,14 +289,14 @@ package component
 			bg.alpha = 0.6;
 			addElement(bg);
 			
-			tvm = new UIAsset();
-			tvm.skinName = "assest/tvm.png";
-			tvm.left = 10;
-			tvm.verticalCenter = 0;
-			addElement(tvm);
+			tvmPng = new UIAsset();
+			tvmPng.skinName = new Bitmap(new tvm);
+			tvmPng.left = 10;
+			tvmPng.verticalCenter = 0;
+			addElement(tvmPng);
 			
 			playBtn = new Button();
-			playBtn.skinName = "assest/playSmall.png";
+			playBtn.skinName = new Bitmap(new playSmall);
 //			playBtn.horizontalCenter = 0;
 			playBtn.left = 80;
 			playBtn.verticalCenter = 0;
@@ -308,7 +306,7 @@ package component
 			
 			pauseBtn = new Button();
 			pauseBtn.visible = false;
-			pauseBtn.skinName = "assest/pauseSmall.png";
+			pauseBtn.skinName = new Bitmap(new pauseSmall);
 			pauseBtn.left = 80;
 			pauseBtn.verticalCenter = 0;
 			addElement(pauseBtn);
@@ -348,14 +346,14 @@ package component
 			zoomInBtn.visible = false;
 			zoomInBtn.verticalCenter = 0;
 			zoomInBtn.right = 20;
-			zoomInBtn.skinName = "assest/zooms.png";
+			zoomInBtn.skinName = new Bitmap(new zooms);
 			addElement(zoomInBtn);
 			zoomInBtn.addEventListener(MouseEvent.CLICK,zoomInOutSwitch)
 			
 			zoomOutBtn = new Button()
 			zoomOutBtn.verticalCenter = 0;
 			zoomOutBtn.right = 20;
-			zoomOutBtn.skinName = "assest/zoomb.png";
+			zoomOutBtn.skinName = new Bitmap(new zoomb);
 			addElement(zoomOutBtn);
 			zoomOutBtn.addEventListener(MouseEvent.CLICK,zoomInOutSwitch);
 			
@@ -371,7 +369,7 @@ package component
 //			volumeOpenBtn.bottom = 0;
 			volumeOpenBtn.horizontalCenter = 0;
 //			volumeOpenBtn.right = 60;
-			volumeOpenBtn.skinName = "assest/volumeopen.png";
+			volumeOpenBtn.skinName = new Bitmap(new volumeopen);
 			volumeContainer.addElement(volumeOpenBtn);
 			volumeOpenBtn.addEventListener(MouseEvent.CLICK, volumeSwitch);
 			
@@ -379,7 +377,7 @@ package component
 //			volumeCloseBtn.horizontalCenter = 0;
 //			volumeCloseBtn.verticalCenter = 0;
 //			volumeCloseBtn.right = 60;
-			volumeCloseBtn.skinName = "assest/volumeclose.png";
+			volumeCloseBtn.skinName = new Bitmap(new volumeclose);
 			volumeContainer.addElement(volumeCloseBtn);
 			volumeCloseBtn.addEventListener(MouseEvent.CLICK, volumeSwitch);
 			volumeCloseBtn.visible = false;

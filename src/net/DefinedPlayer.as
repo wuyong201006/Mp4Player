@@ -7,6 +7,8 @@ package net
 	import flash.net.NetConnection;
 	import flash.net.NetStream;
 	import flash.utils.Timer;
+	import flash.utils.clearInterval;
+	import flash.utils.setInterval;
 	
 	import events.PlayerEvent;
 
@@ -59,13 +61,45 @@ package net
 			_netStream.togglePause();
 		}
 		
+		private var seekID:int;
+		private var seeking:Boolean = true;
+		private var lastOffset:Number
 		public function seek(offset:Number):void
 		{
 			_netStream.seek(offset);
+//			if(offset != lastOffset)
+//			{
+//				if(offset > lastOffset)
+//				{
+//					offset = lastOffset;
+//				}
+//				
+//				lastOffset = offset;
+//				seeking = true;
+//				if(seekID != -1)
+//				{
+//					clearInterval(seekID);
+//					seekID = -1;
+//				}
+//				
+//				_netStream.seek(offset);
+//				seekID = setInterval(checkForTimeUpdate, 1, offset);
+//			}
+			
 			if(!heartbeat.running)
 				heartbeat.start();
 		}
 		
+		private function checkForTimeUpdate(snapshot:Number):void
+		{
+			if(_netStream.time != snapshot)
+			{
+				clearInterval(seekID);
+				seekID = -1;
+				seeking = false;
+//				dispatchEvent( new VideoStreamEvent(VideoStreamEvent.SEEK_
+			}
+		}
 		/**
 		 * 	@param value 声音大小
 		 **/
@@ -95,7 +129,18 @@ package net
 					heartbeat.stop();
 					break;
 				case "NetStream.Seek.Failed":
+					clearInterval(seekID);
+					seeking = false;
 					break;
+				case "NetStream.Seek.InvalidTime":
+//					clearInterval(seekID);
+//					seeking = false;
+					var lvtime:Number = parseFloat(event.info.details);
+//					seek(lvtime);
+//					trace("lvtime"+lvtime);
+					break;
+//				case "NetStream.Seek.Notify":
+//					break;
 			}
 		}
 		

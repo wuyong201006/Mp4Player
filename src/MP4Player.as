@@ -4,7 +4,7 @@ package
 	import com.greensock.TweenLite;
 	import com.hurlant.util.Base64;
 	
-	import flash.display.StageDisplayState;
+	import flash.display.Bitmap;
 	import flash.events.Event;
 	import flash.events.FullScreenEvent;
 	import flash.events.IOErrorEvent;
@@ -27,13 +27,15 @@ package
 	import org.flexlite.domCore.Injector;
 	import org.flexlite.domUI.components.Button;
 	import org.flexlite.domUI.components.Group;
+	import org.flexlite.domUI.components.Label;
+	import org.flexlite.domUI.components.TextInput;
 	import org.flexlite.domUI.core.Theme;
 	import org.flexlite.domUI.managers.SystemManager;
 	import org.flexlite.domUI.skins.themes.VectorTheme;
 	
 	import util.Crypti;
 	
-//	[SWF(width="800", height="600")]
+	[SWF(frameRate="25")]
 	public class MP4Player extends SystemManager
 	{
 //		private const REQ_URL:String = "http://api.pan.tvmcloud.com/player/getvideo.php?content=oDW72xMgB67UdAAQNfDVpKaa09Ht/nzYTLc1lHVp52Ucz4KzqrVtyLgvxKben7Qu";
@@ -71,7 +73,6 @@ package
 			playerParams.height = this.loaderInfo.parameters.height;
 			
 //			log(this.loaderInfo.parameters);
-			log(this.loaderInfo.parameters);
 			
 		}
 		
@@ -117,14 +118,14 @@ package
 		
 		private function durationUpdate(event:PlayerEvent):void
 		{
-			controllBar.updateProgressBarMaximum(Number(event.data)/1000);
+			controllBar.updateProgressBarMaximum(Number(event.data));
 			
 			videoScreenChange();
 		}
 		
 		private function seekExternal(data:Object):void
 		{
-			log("AS CALL："+data);
+//			log("AS CALL："+data);
 			definedPlayer.seek(Number(data));
 		}
 		
@@ -132,17 +133,25 @@ package
 		private function addedToStage(event:Event):void
 		{
 			stage.addEventListener(FullScreenEvent.FULL_SCREEN,fullScreenChangeHandler);
-			addEventListener(MouseEvent.MOUSE_MOVE,userActiveHandler);
+//			addEventListener(MouseEvent.MOUSE_MOVE,userActiveHandler);
 			
 			requestPlayer();
 			
 			var encryptStr:String = Crypti.encrypt(PLAYER_KEY, "aasssddd");
-			trace("encrypt"+encryptStr);
-			trace("decrypt"+Crypti.decrypt(PLAYER_KEY, encryptStr));
+//			trace("encrypt"+encryptStr);
+//			trace("decrypt"+Crypti.decrypt(PLAYER_KEY, encryptStr));
 		}
 		
 		private function fullScreenChangeHandler(event:FullScreenEvent):void
 		{
+//			if(event.fullScreen)
+//			{
+//				controllBar.bottom = 0;
+//			}
+//			else
+//			{
+//				controllBar.bottom = -controllBar.height;
+//			}
 		}
 		
 		private function requestPlayer():void
@@ -153,7 +162,7 @@ package
 //			value.content = this.loaderInfo.parameters.content;
 //			request.data = value;
 			request.data = this.loaderInfo.parameters.content;
-			log("request.data"+request.data);
+//			log("request.data"+request.data);
 			
 //			request.data = this.loaderInfo.parameters.content;
 			var loader:URLLoader = new URLLoader();
@@ -166,7 +175,7 @@ package
 		
 		private function ioError(event:Event):void
 		{
-			trace("请求视频源加载错误！！！");
+//			trace("请求视频源加载错误！！！");
 		}
 		
 		private var accept:Boolean = false;
@@ -230,6 +239,8 @@ package
 			{
 				ExternalInterface.call('updateTime', Number(event.data)*1000);
 			}
+			
+//			playLabel.text = "当前播放时间"+(Number(event.data));
 			
 			if(rateCount >= 10)
 			{
@@ -326,22 +337,24 @@ package
 			var mediaInfo:Object = definedPlayer.mediaInfo;
 			if(mediaInfo == null || mediaInfo.height <= 0 || mediaInfo.width <= 0)return;
 			
+			controllBar.height = (stage.stageWidth> 700 ? 700 : stage.stageWidth)/395*25;
+			
 			var perw:Number = stage.stageWidth / mediaInfo.width;
-			var perh:Number = stage.stageHeight / mediaInfo.height;
+			var perh:Number = (stage.stageHeight-controllBar.height) / mediaInfo.height;
 			var scale:Number = perw <= perh ? perw : perh;
 			
 			var wid:Number = scale*mediaInfo.width;
 			var hei:Number = scale*mediaInfo.height;
-			;
+			
 			groupContainer.width = wid;
-			groupContainer.height = hei;
+			groupContainer.height = /*hei*/stage.stageHeight-controllBar.height;
 			
 			videoScreen.width = wid;
 			videoScreen.height = hei;
 			
-			log("media"+mediaInfo.width/mediaInfo.height+"video"+videoScreen.width/videoScreen.height);
-			log("stageWidth"+stage.stageWidth+"......."+"stageHeight"+stage.stageHeight);
-			log("width"+mediaInfo.width+"height"+mediaInfo.height);
+//			log("media"+mediaInfo.width/mediaInfo.height+"video"+videoScreen.width/videoScreen.height);
+//			log("stageWidth"+stage.stageWidth+"......."+"stageHeight"+stage.stageHeight);
+//			log("width"+mediaInfo.width+"height"+mediaInfo.height);
 //			
 //			if(stage.stageWidth > mediaInfo.width || stage.stageHeight > mediaInfo.height)
 //			{
@@ -362,12 +375,15 @@ package
 //				log("100已执行");
 //			}
 			
-			log("groupContainer:"+groupContainer.width)
+			
+//			log("groupContainer:"+groupContainer.width)
 			TweenLite.delayedCall(0.5, function():void{
-				controllBar.updatePosition(groupContainer.width);
+				controllBar.updatePosition(stage.stageWidth);
+				if(!groupContainer.visible)
+					groupContainer.visible = true;
 			});
 			
-			TweenLite.delayedCall(0.5, drawBackGround);
+//			TweenLite.delayedCall(0.5, drawBackGround);
 		}
 		
 		override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void
@@ -392,6 +408,9 @@ package
 			groupContainer.addElement(group);
 		}
 		
+		//test
+		private var playLabel:Label;
+		
 		private var group:Group;
 		private var groupContainer:Group;
 		//UI Comps
@@ -401,29 +420,48 @@ package
 			
 			groupContainer = new Group();
 			groupContainer.horizontalCenter = 0;
-			groupContainer.verticalCenter = 0;
+//			groupContainer.verticalCenter = 0;
 			addElement(groupContainer);
+			groupContainer.visible = false;
 			
 			videoScreen = new VideoUI();
-			videoScreen.percentHeight = videoScreen.percentWidth = 100;
+//			videoScreen.percentHeight = videoScreen.percentWidth = 100;
 			videoScreen.horizontalCenter = 0;
 			videoScreen.verticalCenter = 0;
 			groupContainer.addElement(videoScreen);
+//			videoScreen.visible = false;
 			
 			controllBar = new ControllBar();
 			controllBar.percentWidth = 100;
 			controllBar.height = 50;
 			controllBar.bottom = 0;
-			groupContainer.addElement(controllBar);
+			addElement(controllBar);
 			controllBar.updatePosition(395);
 			
 			playBtn = new Button();
-			playBtn.skinName = "assest/playBig.png";
+			playBtn.skinName = new Bitmap(new playBig);
 			playBtn.horizontalCenter = 0;
 			playBtn.verticalCenter = 0;
 			groupContainer.addElement(playBtn);
 			playBtn.addEventListener(MouseEvent.CLICK, clickHandler);
 			
+//			var textInput:TextInput = new TextInput();
+//			addElement(textInput);
+//			
+//			playLabel = new Label();
+//			playLabel.top = 15;
+//			addElement(playLabel);
+//			playLabel.text = "播放时间";
+//			
+//			
+//			var btn:Button = new Button();
+//			btn.top = 30;
+//			addElement(btn);
+//			btn.label = "跳 转";
+//			btn.addEventListener(MouseEvent.CLICK, function():void
+//			{
+//				definedPlayer.seek(Number(textInput.text));
+//			});
 //			topBar = new TopBar();
 //			topBar.percentWidth = 100;
 //			topBar.height = 50;
