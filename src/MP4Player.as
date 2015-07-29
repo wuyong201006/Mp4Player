@@ -17,8 +17,8 @@ package
 	import flash.utils.clearTimeout;
 	import flash.utils.setTimeout;
 	
-	import component.ControllBar;
-	import component.TopBar;
+	import view.ControllBar;
+	import view.TopBar;
 	
 	import events.PlayerEvent;
 	
@@ -28,7 +28,6 @@ package
 	import org.flexlite.domUI.components.Button;
 	import org.flexlite.domUI.components.Group;
 	import org.flexlite.domUI.components.Label;
-	import org.flexlite.domUI.components.TextInput;
 	import org.flexlite.domUI.core.Theme;
 	import org.flexlite.domUI.managers.SystemManager;
 	import org.flexlite.domUI.skins.themes.VectorTheme;
@@ -38,7 +37,6 @@ package
 	[SWF(frameRate="25")]
 	public class MP4Player extends SystemManager
 	{
-//		private const REQ_URL:String = "http://api.pan.tvmcloud.com/player/getvideo.php?content=oDW72xMgB67UdAAQNfDVpKaa09Ht/nzYTLc1lHVp52Ucz4KzqrVtyLgvxKben7Qu";
 		private const REQ_URL:String = "http://api.pan.tvmcloud.com/player/getvideo.php?content=";
 		
 		private var videoScreen:VideoUI;
@@ -68,6 +66,7 @@ package
 //			playerParams.content = parseContent(PLAYER_KEY, this.loaderInfo.parameters.content);
 			addEventListener(Event.ADDED_TO_STAGE, addedToStage);
 			
+//			log(this.loaderInfo.parameters);
 			playerParams.auto_play = this.loaderInfo.parameters.auto_play;
 			playerParams.width = this.loaderInfo.parameters.width;
 			playerParams.height = this.loaderInfo.parameters.height;
@@ -78,8 +77,6 @@ package
 		
 		private function initPlayer():void
 		{
-			playerParams.auto_play = true;
-			
 			if(playerParams.content)
 			{
 //				controllBar.updateProgressBarMaximum(playerParams.content.duration);
@@ -96,18 +93,10 @@ package
 			controllBar.addEventListener(PlayerEvent.CONTROLLBAR_PLAY, controllBarPlay);
 			controllBar.addEventListener(PlayerEvent.VOLUME_UPDATE, volumeUpdate);
 			
-			if(playerParams.auto_play)
-			{
-				definedPlayer.play();
-				controllBar.playStatus = true;
-			}
-			else
-			{
-				controllBar.playStatus = false;
-			}
+			definedPlayer.play();
 			
+			controllBar.playStatus = Boolean(int(playerParams.auto_play));
 			playerStatus = !playerParams.auto_play;
-			controllBar.playStatus = true;
 			
 			videoScreenChange();
 			if(ExternalInterface.available)
@@ -118,6 +107,12 @@ package
 		
 		private function durationUpdate(event:PlayerEvent):void
 		{
+			if(!Boolean(int(playerParams.auto_play)) && IsPlayer)
+			{
+				definedPlayer.pause();
+				IsPlayer = false;				
+			}
+			
 			controllBar.updateProgressBarMaximum(Number(event.data));
 			
 			videoScreenChange();
@@ -133,6 +128,8 @@ package
 		private function addedToStage(event:Event):void
 		{
 			stage.addEventListener(FullScreenEvent.FULL_SCREEN,fullScreenChangeHandler);
+//			stage.addEventListener(Event.RESIZE, resizeHandler);
+//			addEventListener(Event.ENTER_FRAME, resizeHandler);
 //			addEventListener(MouseEvent.MOUSE_MOVE,userActiveHandler);
 			
 			requestPlayer();
@@ -140,6 +137,12 @@ package
 			var encryptStr:String = Crypti.encrypt(PLAYER_KEY, "aasssddd");
 //			trace("encrypt"+encryptStr);
 //			trace("decrypt"+Crypti.decrypt(PLAYER_KEY, encryptStr));
+		}
+		
+		private function resizeHandler(event:Event):void
+		{
+			log("resize"+stage.stageWidth+"------"+stage.stageHeight);
+//			videoScreenChange();
 		}
 		
 		private function fullScreenChangeHandler(event:FullScreenEvent):void
@@ -183,7 +186,7 @@ package
 		{
 			var loader:URLLoader = event.target as URLLoader;
 			playerParams.content = parseContent(PLAYER_KEY, loader.data);
-			
+//			log("请求完成！！");
 			if(definedPlayer == null)
 				initPlayer();
 		}
@@ -217,17 +220,8 @@ package
 		
 		private function controllBarPlay(event:PlayerEvent):void
 		{
-			if(IsPlayer && !playerParams.auto_play)
-			{
-				IsPlayer = false;
-				definedPlayer.play();
-				playerStatus = false;
-			}
-			else
-			{
-				playerStatus = Boolean(event.data);
-				definedPlayer.pause();
-			}
+			definedPlayer.pause();
+			playerStatus = Boolean(event.data);
 		}
 		
 		private var rateCount:int=0;
@@ -330,12 +324,24 @@ package
 			}
 		}
 		
+		private var lastStageWidth:Number=0;
+		private var lastStageHeight:Number=0;
 		private function videoScreenChange():void
 		{
 //			stage.displayState = StageDisplayState.NORMAL;
+			
 			if(definedPlayer == null)return;
+			
 			var mediaInfo:Object = definedPlayer.mediaInfo;
 			if(mediaInfo == null || mediaInfo.height <= 0 || mediaInfo.width <= 0)return;
+			
+			if(stage.stageWidth == lastStageWidth && stage.stageHeight == lastStageHeight)
+			{
+				return;
+			}
+			
+			lastStageWidth = stage.stageWidth;
+			lastStageHeight = stage.stageHeight;
 			
 			controllBar.height = (stage.stageWidth> 700 ? 700 : stage.stageWidth)/395*25;
 			
@@ -445,23 +451,6 @@ package
 			groupContainer.addElement(playBtn);
 			playBtn.addEventListener(MouseEvent.CLICK, clickHandler);
 			
-//			var textInput:TextInput = new TextInput();
-//			addElement(textInput);
-//			
-//			playLabel = new Label();
-//			playLabel.top = 15;
-//			addElement(playLabel);
-//			playLabel.text = "播放时间";
-//			
-//			
-//			var btn:Button = new Button();
-//			btn.top = 30;
-//			addElement(btn);
-//			btn.label = "跳 转";
-//			btn.addEventListener(MouseEvent.CLICK, function():void
-//			{
-//				definedPlayer.seek(Number(textInput.text));
-//			});
 //			topBar = new TopBar();
 //			topBar.percentWidth = 100;
 //			topBar.height = 50;
